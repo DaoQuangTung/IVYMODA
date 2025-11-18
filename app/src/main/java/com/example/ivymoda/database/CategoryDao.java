@@ -14,10 +14,11 @@ public interface CategoryDao {
     @Update
     void updateCategory(Category category);
 
-    @Query("SELECT * FROM categories")
+    @Query("SELECT * FROM danhmuc")
     List<Category> getAllCategories();
 
     // Bạn có thể thêm các hàm khác sau này như delete, update...
-    @Query("DELETE FROM categories WHERE id = :id")
+    @Query("DELETE FROM danhmuc WHERE id = :id")
     void deleteCategory(int id);
+
 }

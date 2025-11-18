@@ -35,21 +35,49 @@ public class RegisterActivity extends AppCompatActivity {
         String password = edtPass.getText().toString().trim();
         String email = edtEmail.getText().toString().trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
+        // 1. Kiểm tra bỏ trống
+        if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {
             Toast.makeText(this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        User existingUser = AppDatabase.getInstance(this).userDao().checkUsernameExist(username);
-        if (existingUser != null) {
-            Toast.makeText(this, "Tài khoản đã tồn tại!", Toast.LENGTH_SHORT).show();
+        // 2. --- MỚI: Kiểm tra định dạng Email ---
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Email không đúng định dạng!", Toast.LENGTH_SHORT).show();
+            edtEmail.requestFocus(); // Đưa con trỏ về ô Email
             return;
         }
 
-        // Nếu username là "admin" thì cấp quyền admin, ngược lại là user thường
-        boolean isAdmin = "admin".equals(username);
+        // 3. Kiểm tra Username đã tồn tại chưa
+        User existingUser = AppDatabase.getInstance(this).userDao().checkUsernameExist(username);
+        if (existingUser != null) {
+            Toast.makeText(this, "Tên đăng nhập đã tồn tại!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        User newUser = new User(username, password, name, email, isAdmin);
+        // 4. --- MỚI: Kiểm tra Email đã tồn tại chưa ---
+        User existingEmail = AppDatabase.getInstance(this).userDao().checkEmailExist(email);
+        if (existingEmail != null) {
+            Toast.makeText(this, "Email này đã được đăng ký!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 5. Logic tạo Admin (như cũ)
+        boolean isAdmin = "admin".equals(username);
+        String currentDate = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+        // 6. Lưu vào Database
+        User newUser = new User(
+                username,
+                password,
+                name,
+                email,
+                "",             // soDienThoai (Tạm thời để trống)
+                "",             // ngaySinh (Tạm thời để trống)
+                "",             // diaChi (Tạm thời để trống)
+                "Nam",          // gioiTinh (Mặc định là Nam)
+                currentDate,    // ngayTao (Lấy ngày hôm nay)
+                isAdmin
+        );;
         AppDatabase.getInstance(this).userDao().registerUser(newUser);
 
         Toast.makeText(this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
